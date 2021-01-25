@@ -12,7 +12,7 @@ jobs:
 
       - name: Install packages
         run: |
-          apt-get update -y && apt-get install -y curl gnupg
+          apt-get update -y && apt-get install -y git curl gnupg
 
       - name: Download Release key
         run: |
