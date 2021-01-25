@@ -4,46 +4,29 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-18.04
+    container: openjdk@sha256:335627a2118556b3f412287e08ac7febb8ecc46325dc6b3570db56f32d33938f
 
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Set version
-        id: vars
-        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
-
       - name: Install packages
         run: |
           sudo apt-get update -y &&
-            sudo apt-get install -y git curl gnupg
+            sudo apt-get install -y curl gnupg
 
       - name: Download Release key
         run: |
           gpg --keyserver https://secchannel.rsk.co/release.asc --recv-keys 1A92D8942171AFA951A857365DECF4415E3B8FA4
 
-      - name: Clone
-        run: |
-          git clone https://github.com/rsksmart/powpeg-node.git
-
-      - name: Checkout
-        working-directory: powpeg-node
-        run: |
-          git checkout ${{ steps.vars.outputs.tag }}
-
       - name: Verify files integrity
-        working-directory: powpeg-node
         run: |
-          gpg -d SHA256SUMS.asc && sha256sum --check SHA256SUMS.asc
+          gpg -d SHA256SUMS.asc && sha256sum --check SHA256SUMS
 
       - name: Build powpeg-node
-        working-directory: powpeg-node
         run: |
           ./configure.sh && ./gradlew --no-daemon clean build -x test
 
       - name: Calculate hashes
-        working-directory: powpeg-node
         run: |
           sha256sum build/libs/*
-
-      - uses: docker://openjdk@sha256:335627a2118556b3f412287e08ac7febb8ecc46325dc6b3570db56f32d33938f
