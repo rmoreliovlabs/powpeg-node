@@ -13,21 +13,14 @@ jobs:
         id: vars
         run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
 
-      - name: Update packages
-        run: |
-          sudo apt-get update -y
-
       - name: Install packages
         run: |
-          sudo apt-get install -y git curl gnupg
+          sudo apt-get update -y &&
+            sudo apt-get install -y git curl gnupg
 
       - name: Download Release key
         run: |
           gpg --keyserver https://secchannel.rsk.co/release.asc --recv-keys 1A92D8942171AFA951A857365DECF4415E3B8FA4
-
-      - name: Check fingerprint
-        run: |
-          gpg --finger 1A92D8942171AFA951A857365DECF4415E3B8FA4
 
       - name: Clone
         run: |
@@ -38,25 +31,15 @@ jobs:
         run: |
           git checkout ${{ steps.vars.outputs.tag }}
 
-      - name: Verify SHA256SUM
+      - name: Verify files integrity
         working-directory: powpeg-node
         run: |
-          gpg --verify SHA256SUMS.asc
+          gpg -d SHA256SUMS.asc && sha256sum --check SHA256SUMS.asc
 
-      - name: Check SHA256SUM
+      - name: Build powpeg-node
         working-directory: powpeg-node
         run: |
-          sha256sum --check SHA256SUMS.asc
-
-      - name: Run configure.sh
-        working-directory: powpeg-node
-        run: |
-          ./configure.sh
-
-      - name: Build
-        working-directory: powpeg-node
-        run: |
-          ./gradlew --no-daemon clean build -x test
+          ./configure.sh && ./gradlew --no-daemon clean build -x test
 
       - name: Calculate hashes
         working-directory: powpeg-node
