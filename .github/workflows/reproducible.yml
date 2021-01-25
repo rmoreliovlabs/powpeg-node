@@ -21,7 +21,7 @@ jobs:
 
       - name: Verify files integrity
         run: |
-          gpg -d SHA256SUMS.asc && sha256sum --check SHA256SUMS
+          gpg --verify --output SHA256SUMS SHA256SUMS.asc && sha256sum --check SHA256SUMS
 
       - name: Build powpeg-node
         run: |
