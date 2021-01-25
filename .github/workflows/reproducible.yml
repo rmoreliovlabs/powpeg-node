@@ -1,4 +1,4 @@
-name: "Reproducible build"
+name: Reproducible build
 on: [push]
 
 jobs:
@@ -13,43 +13,54 @@ jobs:
         id: vars
         run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
 
-      - name: "Update packages"
-        run: "sudo apt-get update -y"
+      - name: Update packages
+        run: |
+          sudo apt-get update -y
 
-      - name: "Install packages"
-        run: "sudo apt-get install -y git curl gnupg"
+      - name: Install packages
+        run: |
+          sudo apt-get install -y git curl gnupg
 
-      - name: "Download Release key"
-        run: "gpg --keyserver https://secchannel.rsk.co/release.asc --recv-keys 1A92D8942171AFA951A857365DECF4415E3B8FA4"
+      - name: Download Release key
+        run: |
+          gpg --keyserver https://secchannel.rsk.co/release.asc --recv-keys 1A92D8942171AFA951A857365DECF4415E3B8FA4
 
-      - name: "Check fingerprint"
-        run: "gpg --finger 1A92D8942171AFA951A857365DECF4415E3B8FA4"
+      - name: Check fingerprint
+        run: |
+          gpg --finger 1A92D8942171AFA951A857365DECF4415E3B8FA4
 
       - name: Clone
-        run: git clone https://github.com/rsksmart/powpeg-node.git
+        run: |
+          git clone https://github.com/rsksmart/powpeg-node.git
 
       - name: Checkout
-        run: git checkout ${{ steps.vars.outputs.tag }}
         working-directory: powpeg-node
+        run: |
+          git checkout ${{ steps.vars.outputs.tag }}
 
-      - name: "verify SHA256SUM"
-        run: "gpg --verify SHA256SUMS.asc"
+      - name: Verify SHA256SUM
         working-directory: powpeg-node
+        run: |
+          gpg --verify SHA256SUMS.asc
 
-      - name: "check SHA256SUM"
-        run: "sha256sum --check SHA256SUMS.asc"
+      - name: Check SHA256SUM
         working-directory: powpeg-node
+        run: |
+          sha256sum --check SHA256SUMS.asc
 
-      - name: "run configure.sh"
-        run: ./configure.sh
+      - name: Run configure.sh
         working-directory: powpeg-node
+        run: |
+          ./configure.sh
 
-      - name: build
-        run: "./gradlew --no-daemon clean build -x test"
+      - name: Build
         working-directory: powpeg-node
+        run: |
+          ./gradlew --no-daemon clean build -x test
 
-      - name: "calculate hashes"
-        run: "sha256sum build/libs/*"
+      - name: Calculate hashes
         working-directory: powpeg-node
+        run: |
+          sha256sum build/libs/*
 
       - uses: docker://openjdk@sha256:335627a2118556b3f412287e08ac7febb8ecc46325dc6b3570db56f32d33938f
